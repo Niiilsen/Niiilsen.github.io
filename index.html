@@ -1,26 +1,34 @@
 <html>
 	<head>
-		<title>WebGL - VSIM Oblig 04</title>
-		<link rel = "stylesheet" type ="text/css" href="style.css">
+		<title>WebGL - Oblig04</title>
+		<link rel = "stylesheet" type ="text/css" href="./Style/style.css">
 	</head>
-	<body onload = "InitDemo();"> 
+	<body onload = "InitProgram();"> 
 		<b>MERRY CHRISTMAS!</b>
 		<h3>Click and drag to rotate - Scroll to zoom</h3>
 		<canvas id="game-surface" width="800" height="600">
 			Your browser does not support HTML5
 		</canvas>
 		<br />
-		<img id = "cubeAtlas" src = "atlas.jpg" width = "0" height = "0"></img>
+		<img id = "cubeAtlas" src = "./Images/atlas.jpg" width = "0" height = "0"></img>
 
 		<script src="../Common/MV.js"></script>
+		<script src="../Common/utils.js"></script>
+
+		<script src="../Scripts/app.js"></script>
+		<script src="../Scripts/camera.js"></script>
+		<script src="../Scripts/gameobject.js"></script>
+		<script src="../Scripts/light.js"></script>	
+		<script src="../Scripts/material.js"></script>
+		<script src="../Scripts/mesh.js"></script>
+		<script src="../Scripts/meshbase.js"></script>	
+		<script src="../Scripts/meshFactory.js"></script>
+		<script src="../Scripts/sceneCreation.js"></script>
+		<script src="../Scripts/shaderProgram.js"></script>
+		<script src="../Scripts/transform.js"></script>	
 		
-		<script src="app.js"></script>
-		<script src="camera.js"></script>
-		<script src="light.js"></script>	
-		<script src="material.js"></script>
-		<script src="meshbase.js"></script>	
-		<script src="meshFactory.js"></script>
-		<script src="transform.js"></script>	
-		<script src="utils.js"></script>
+
+		<embed height="60" type="audio/mp3" width="144" src="./Music/ChristmasSong.mp3" volume="1" loop="false" autostart="false" />
+		
 	</body>
 </html>

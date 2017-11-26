@@ -1,44 +1,26 @@
 // Loading shaders before program starts
-var InitDemo = function () {
-	loadTextResource('./shader.vs.glsl', function (vsErr, vsText) {
+var InitProgram = function () {
+	loadTextResource('./Shaders/shader.vs.glsl', function (vsErr, vsText) {
 		if (vsErr) {
 			alert('Fatal error getting vertex shader (see console)');
 			console.error(vsErr);
 		} else {
-			loadTextResource('./shader.fs.glsl', function (fsErr, fsText) {
+			loadTextResource('./Shaders/shader.fs.glsl', function (fsErr, fsText) {
 				if (fsErr) {
 					alert('Fatal error getting fragment shader (see console)');
 					console.error(fsErr);
 				} else {
-					RunDemo(vsText, fsText);
+					RunProgram(vsText, fsText);
 				}
 			});
 		}
 	});
 };
 
-//This program contains only blocks as meshes
-//This object holds the meshBase, a transform and a material
-function Block(typeOfBlock, pos = [0,0,0], rot = [0,0,0], scale = [1,1,1])
-{
-	this.meshbase = new MeshBase();
-	this.meshbase.CreateBlock(typeOfBlock);
-
-	this.transform = new Transform();
-	this.transform.SetPosition(pos[0], pos[1], pos[2]);
-	this.transform.SetRotation(rot[0], rot[1], rot[2]);
-	this.transform.SetScale(scale[0], scale[1], scale[2]);
-
-	this.material = new Material();
-
-	//Quick fix for particles
-	this.yVelocity = Math.random() * 0.05;
-}
-
 //Adds a block to the gameobject-list
 function AddToRenderObjectList(object)
 {
-	renderObjects.push(object);
+	gameObjects.push(object);
 }
 
 //HTML5 canvas
@@ -46,7 +28,7 @@ var canvas;
 
 //Render var
 var gl;
-var renderObjects = [];
+var gameObjects = [];
 var particles = [];
 var lights = [];
 var worldAmbient = vec3(0.0,0.0,0.1);
@@ -57,7 +39,7 @@ var lastMouseX = 0;
 var lastMouseY = 0;
 var mouseDown = false;
 
-var RunDemo = function(vertexShaderText, fragmentShaderText)
+var RunProgram = function(vertexShaderText, fragmentShaderText)
 {
 	console.log('This is working');
 
@@ -91,42 +73,7 @@ var RunDemo = function(vertexShaderText, fragmentShaderText)
 	gl.cullFace(gl.BACK);
 	gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
 
-	//Create shaders
-	var vertexShader = gl.createShader(gl.VERTEX_SHADER);
-	var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-
-	gl.shaderSource(vertexShader, vertexShaderText);
-	gl.shaderSource(fragmentShader, fragmentShaderText);
-
-	//Compile the vertexshader and check for errors
-	gl.compileShader(vertexShader);
-	if(!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)){
-		console.error('ERROR compiling vertex shader!', gl.getShaderInfoLog(vertexShader));
-		return;
-	}
-	
-	//Compile the vertexshader and check for errors
-	gl.compileShader(fragmentShader);
-	if(!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)){
-		console.error('ERROR compiling fragment shader!', gl.getShaderInfoLog(fragmentShader));
-		return;
-	}
-
-	//Create and link the program
-	var program = gl.createProgram();
-	gl.attachShader(program, vertexShader);
-	gl.attachShader(program, fragmentShader);
-	gl.linkProgram(program);
-	if(!gl.getProgramParameter(program, gl.LINK_STATUS)){
-		console.error('ERROR linking program!', gl.getProgramInfoLog(program));
-		return;
-	}
-
-	gl.validateProgram(program);
-	if(!gl.getProgramParameter(program, gl.VALIDATE_STATUS)){
-		console.error('ERROR validating program!', gl.getProgramInfoLog(program));
-		return;
-	}
+	var program = CreateShaderProgram(gl, vertexShaderText, fragmentShaderText);
 
 	// Tell OpenGL state machine which program should be active
 	gl.useProgram(program);
@@ -139,7 +86,7 @@ var RunDemo = function(vertexShaderText, fragmentShaderText)
 
 	gl.enableVertexAttribArray(positionAttributeLocation);
 	gl.enableVertexAttribArray(normalAttributeLocation);
-	gl.enableVertexAttribArray(tangentAttributeLocation);
+	//gl.enableVertexAttribArray(tangentAttributeLocation);
 	gl.enableVertexAttribArray(texCoordAttributeLocation);
 
 	//Object uniforms
@@ -198,7 +145,6 @@ var RunDemo = function(vertexShaderText, fragmentShaderText)
 	}
 
 	gl.uniform1i(mainTexLocation, 0);
-	gl.uniform1i(normalMapLocation, 1);
 
 	gl.bindTexture(gl.TEXTURE_2D, null);
 	/* 		TEXTURE CREATION END 	 */
@@ -226,6 +172,9 @@ var RunDemo = function(vertexShaderText, fragmentShaderText)
 	
 	/*		INTERACTION	START	*/
 	//On mousedragging - rotate the camera
+	var deltaXgravity = 1;
+	var deltaYgravity = 0;
+	var zoomGravity = 0;
 	canvas.onmousedown = function(ev){
 		mouseDown = true;
 		lastMouseX = ev.x;
@@ -236,9 +185,8 @@ var RunDemo = function(vertexShaderText, fragmentShaderText)
 			return;
 		deltaX = ev.x - lastMouseX;
 		deltaY = ev.y - lastMouseY;
-
-		camera.AdjustAngle(deltaX, deltaY);
-		camera.UpdatePosition();
+		deltaXgravity = deltaX;
+		deltaYgravity = deltaY;
 
 		lastMouseX = ev.x;
 		lastMouseY = ev.y;
@@ -247,124 +195,12 @@ var RunDemo = function(vertexShaderText, fragmentShaderText)
 
 	//Zoom on mousewheel scroll
 	window.onmousewheel = function(ev){
-		camera.AdjustDistance(ev.wheelDelta/250);
-		camera.UpdatePosition();
+		zoomGravity = ev.wheelDelta/250;
 	}
 	/*		INTERACTION	END	*/
 	
-	/*		SCENE CREATION START 	*/
-	var size = 5;
-	var flatLimit = 2;
-	for(z = -size; z <= size; z++)
-	{
-		for(x = -size; x <= size; x++)
-		{
-			var y = 0;
-			//The flat ground around the tree
-			if((Math.abs(z) == flatLimit && Math.abs(x) <= flatLimit) || (Math.abs(x) == flatLimit && Math.abs(z) <= flatLimit))
-			{
-				if(Math.abs(z) == flatLimit && Math.abs(x) == flatLimit)
-					y = -1;
-				else
-					y = 0;	
-				var block = new Block(grassBlock, [x*2,y,z*2]);
-				renderObjects.push(block);		
-			}
-			//The hills around the tree
-			else if((Math.abs(z) > flatLimit || Math.abs(x) > flatLimit) && (Math.abs(x) > flatLimit || Math.abs(z) > flatLimit))
-			{
-				y = (Math.abs(z) - 2) * -1;
-				y += (Math.abs(x) - 2) * -1;
-
-				//The toplayer of grassblocks
-				var block = new Block(grassBlock, [x*2,y,z*2]);
-				renderObjects.push(block);
-
-				//Dirtblocks underneath the grassblocks
-				for(w = (y%2) * -1 - 10; w < y; w+= 2)
-				{
-					var block = new Block(dirtBlock, [x*2,w,z*2]);
-					renderObjects.push(block);		
-				}
-			}
-			else
-			{
-				//Shiny iceblocks around the tree
-				var block = new Block(iceBlock, [x*2,y+0.5,z*2]);
-				block.blendMode = true;
-				block.material.shinyness = 400.0;
-				renderObjects.push(block);		
-			}
-		}
-	}
-
-	
-
-	//Tree Construction
-	//Trunk
-	var block = new Block(woodBlock, [0, 2, 0]);
-	renderObjects.push(block);
-	block = new Block(woodBlock, [0, 4, 0]);
-	renderObjects.push(block);
-
-	//Leaves 
-	for(z = -1; z <= 1; z++)
-	{
-		for(x = -1; x <= 1; x++)
-		{
-			var block = new Block(bushBlock, [x*2,6,z*2]);
-			block.material.shinyness = 600;
-			renderObjects.push(block);		
-		}
-	}	
-	block = new Block(bushBlock, [0, 8, 0]);
-	renderObjects.push(block);
-
-	//Gifts
-	var gift = new Block(giftRedBlock, [2, 2, 2], [0, 60, 0], [0.5, 0.5, 0.5]);
-	renderObjects.push(gift);
-
-	gift = new Block(giftBlueBlock, [0, 1.9, 1.7], [45, -10, 0], [1.5, 0.4, 0.6]);
-	renderObjects.push(gift);
-
-	gift = new Block(giftRedBlock, [2, 1.9, 0.8], [0, 100, 0], [0.35, 0.3, 0.6]);
-	renderObjects.push(gift);
-
-	gift = new Block(giftYellowBlock, [2, 2.2, -0.5], [0, 90, -15], [1.5, 0.2, 0.6]);
-	renderObjects.push(gift);
-
-	gift = new Block(giftYellowBlock, [-0.5, 1.9, 2.7], [0, -10, 0], [0.3, 0.3, 0.3]);
-	renderObjects.push(gift);
-
-	var gift = new Block(giftRedBlock, [-2, 2, -2], [0, -60, 0], [0.5, 0.5, 0.5]);
-	renderObjects.push(gift);
-
-	gift = new Block(giftBlueBlock, [0, 1.9, -1.7], [-45, 10, 0], [1.5, 0.4, 0.6]);
-	renderObjects.push(gift);
-
-	gift = new Block(giftRedBlock, [-2, 1.9, -0.8], [0, -100, 0], [0.35, 0.3, 0.6]);
-	renderObjects.push(gift);
-
-	gift = new Block(giftYellowBlock, [-2, 2.2, 0.5], [0, -90, -15], [1.5, 0.2, 0.6]);
-	renderObjects.push(gift);
-
-	gift = new Block(giftYellowBlock, [0.5, 1.9, -2.7], [0, 10, 0], [0.3, 0.3, 0.3]);
-	renderObjects.push(gift);
-
-	for(i = 0; i < 200; i++)
-	{
-		var x = Math.floor(Math.random() * 30 -15);
-		var y = Math.floor(Math.random() * 10);
-		var z = Math.floor(Math.random() * 30 -15);
-
-		var scale = Math.random() * 0.025 + 0.020;
-		
-		var particle = new Block(snowBlock, [x,y,z], [0,0,0], [scale,scale,scale])
-		particles.push(particle);
-	}
-
-	/* 		SCENE CREATION END 		*/
-
+	//Creates all the objects in the scene
+	CreateScene();
 	
 	/* 		MAIN RENDER LOOP 	*/
 	var angle = 0;
@@ -373,6 +209,14 @@ var RunDemo = function(vertexShaderText, fragmentShaderText)
 		// Fit the canvas to the whole browser window
 		resize(gl.canvas);
 		gl.viewport(0,0,gl.canvas.width, gl.canvas.height);
+
+		//Smoother movement on camera
+		deltaXgravity *=0.90;
+		deltaYgravity *= 0.90;
+		zoomGravity *= 0.85;
+		camera.AdjustAngle(deltaXgravity, deltaYgravity);
+		camera.AdjustDistance(zoomGravity);
+		camera.UpdatePosition();
 
 		//Set view and projection matrices
 		gl.uniformMatrix4fv(matViewUniformLocation, gl.FALSE, flatten(camera.GetViewMatrix()));
@@ -394,9 +238,9 @@ var RunDemo = function(vertexShaderText, fragmentShaderText)
 		gl.activeTexture(gl.TEXTURE0);
 		gl.bindTexture(gl.TEXTURE_2D, textures[0]);
 
-		for(i = 0; i < renderObjects.length; i++)
+		for(i = 0; i < gameObjects.length; i++)
 		{
-			RenderObject(renderObjects[i]);
+			RenderObject(gameObjects[i]);
 		}
 
 		gl.enable(gl.BLEND);
@@ -419,11 +263,11 @@ var RunDemo = function(vertexShaderText, fragmentShaderText)
 		//Get modelMatrix and material variables and send it to the shaderprogram
 		modelMatrix = obj.transform.GetModelMatrix();
 		gl.uniformMatrix4fv(matModelUniformLocation, gl.FALSE, flatten(modelMatrix));
-		gl.uniform1f(shinynessUniformLocation, obj.material.shinyness);
-		gl.uniform3f(ambientUniformLocation, obj.material.ambient[0], obj.material.ambient[1], obj.material.ambient[2]);
+		gl.uniform1f(shinynessUniformLocation, obj.mesh.material.shinyness);
+		gl.uniform3f(ambientUniformLocation, obj.mesh.material.ambient[0], obj.mesh.material.ambient[1], obj.mesh.material.ambient[2]);
 		
 		//Render the gameobject mesh
-		obj.meshbase.Render(positionAttributeLocation, normalAttributeLocation , tangentAttributeLocation,texCoordAttributeLocation);	
+		obj.Render(positionAttributeLocation, normalAttributeLocation , tangentAttributeLocation,texCoordAttributeLocation);	
 	}
 }
 
