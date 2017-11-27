@@ -19,7 +19,7 @@ precision mediump float;
 	uniform vec3 ambientLightIntensity;
 	uniform float shinyness;
 	uniform sampler2D mainTex;
-	uniform sampler2D normalMap;
+	uniform sampler2D specularTex;
 	uniform vec3 eye;
 	uniform vec3 fogColor;
 	uniform vec2 fogDist;
@@ -57,6 +57,8 @@ precision mediump float;
 
 		vec3 reflectVec = normalize(-reflect(vertexToLightDir, fragNormal));
 		float specular = pow(max(dot(reflectVec, eyeDir), 0.0), shinyness);
+		float specularTexel = texture2D(specularTex, fragTexCoord).x;
+		specular *= specularTexel;
 
 
 

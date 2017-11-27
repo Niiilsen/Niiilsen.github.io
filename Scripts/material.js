@@ -3,5 +3,5 @@ function Material()
 {
 	this.color = vec4(1.0,1.0,1.0,1.0);
 	this.ambient = vec4(0.1,0.1,0.3,1.0);
-	this.shinyness = 10.0;
+	this.shinyness = 20.0;
 }

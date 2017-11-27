@@ -117,12 +117,14 @@ var RunProgram = function(vertexShaderText, fragmentShaderText)
 	
 	//Texture uniforms
 	var mainTexLocation = gl.getUniformLocation(program, 'mainTex');
+	var specTexLocation = gl.getUniformLocation(program, 'specularTex');
 	var normalMapLocation = gl.getUniformLocation(program, 'normalMap');
 	/* 		SHADER PROGRAM INITIALIZATION END 		*/
 
 	/* 		TEXTURE CREATION START  	*/
 	images = [];
 	images.push(document.getElementById('cubeAtlas'));
+	images.push(document.getElementById('cubeAtlasSpecular'));
 
 	var textures = [];
 	for(var i = 0; i < images.length; i++)
@@ -145,6 +147,8 @@ var RunProgram = function(vertexShaderText, fragmentShaderText)
 	}
 
 	gl.uniform1i(mainTexLocation, 0);
+	gl.uniform1i(specTexLocation, 1);
+	console.log("MainTex: " + mainTexLocation + " SpecTex: " + specTexLocation)
 
 	gl.bindTexture(gl.TEXTURE_2D, null);
 	/* 		TEXTURE CREATION END 	 */
@@ -172,13 +176,15 @@ var RunProgram = function(vertexShaderText, fragmentShaderText)
 	
 	/*		INTERACTION	START	*/
 	//On mousedragging - rotate the camera
-	var deltaXgravity = 5;
+	var deltaXgravity = 1;
 	var deltaYgravity = 0;
 	var zoomGravity = 0;
+	var rotateTimer = 0;
 	canvas.onmousedown = function(ev){
 		mouseDown = true;
 		lastMouseX = ev.x;
 		lastMouseY = ev.y;
+		rotateTimer = 2;
 	}
 	canvas.onmousemove = function(ev){
 		if(!mouseDown)
@@ -210,6 +216,19 @@ var RunProgram = function(vertexShaderText, fragmentShaderText)
 		resize(gl.canvas);
 		gl.viewport(0,0,gl.canvas.width, gl.canvas.height);
 
+		//AutoRotation
+		if(!mouseDown && rotateTimer >= 0)
+			rotateTimer -= 0.1
+		else if(!mouseDown && rotateTimer < 0 && Math.abs(deltaXgravity) < 1)
+		{
+			if(deltaXgravity > 0)
+				deltaXgravity = Math.min(2, deltaXgravity + 0.1);
+			else
+				deltaXgravity = Math.max(-2, deltaXgravity - 0.1);
+			//deltaYgravity = Math.min(1, deltaYgravity + deltaTime);	
+		}
+
+
 		//Smoother movement on camera
 		deltaXgravity *=0.90;
 		deltaYgravity *= 0.90;
@@ -234,6 +253,8 @@ var RunProgram = function(vertexShaderText, fragmentShaderText)
 		//Bind texture atlas
 		gl.activeTexture(gl.TEXTURE0);
 		gl.bindTexture(gl.TEXTURE_2D, textures[0]);
+		gl.activeTexture(gl.TEXTURE1);
+		gl.bindTexture(gl.TEXTURE_2D, textures[1]);
 
 		for(i = 0; i < gameObjects.length; i++)
 		{

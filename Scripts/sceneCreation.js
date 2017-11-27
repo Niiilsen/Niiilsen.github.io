@@ -27,13 +27,6 @@ function CreateScene()
 				//The toplayer of grassblocks
 				var block = new GameObject(new Mesh(grassBlock), [x*2,y,z*2]);
 				gameObjects.push(block);
-
-				//Dirtblocks underneath the grassblocks
-				for(w = (y%2) * -1 - 10; w < y; w+= 2)
-				{
-					var block = new GameObject(new Mesh(dirtBlock), [x*2,w,z*2]);
-					gameObjects.push(block);		
-				}
 			}
 			else
 			{
