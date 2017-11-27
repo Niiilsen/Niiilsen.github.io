@@ -172,7 +172,7 @@ var RunProgram = function(vertexShaderText, fragmentShaderText)
 	
 	/*		INTERACTION	START	*/
 	//On mousedragging - rotate the camera
-	var deltaXgravity = 1;
+	var deltaXgravity = 5;
 	var deltaYgravity = 0;
 	var zoomGravity = 0;
 	canvas.onmousedown = function(ev){
@@ -230,10 +230,7 @@ var RunProgram = function(vertexShaderText, fragmentShaderText)
 		//CameraPos uniform update in case of movement in camera pos
 		gl.uniform3f(camPosUniformLocation, camera.transform.pos[0], camera.transform.pos[1], camera.transform.pos[2]);
 
-		//Clear the screen
-		gl.clearColor(worldAmbient[0], worldAmbient[1], worldAmbient[2], 1.0);
-		gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
-
+		
 		//Bind texture atlas
 		gl.activeTexture(gl.TEXTURE0);
 		gl.bindTexture(gl.TEXTURE_2D, textures[0]);
