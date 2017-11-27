@@ -217,7 +217,7 @@ var RunProgram = function(vertexShaderText, fragmentShaderText)
 		resize(gl.canvas);
 		gl.viewport(0,0,gl.canvas.width, gl.canvas.height);
 
-		//AutoRotation
+		//Automatic rotation on camera
 		if(!mouseDown && rotateTimer >= 0)
 			rotateTimer -= 0.1
 		else if(!mouseDown && rotateTimer < 0 && Math.abs(deltaXgravity) < 1)
@@ -226,10 +226,7 @@ var RunProgram = function(vertexShaderText, fragmentShaderText)
 				deltaXgravity = Math.min(2, deltaXgravity + 0.1);
 			else
 				deltaXgravity = Math.max(-2, deltaXgravity - 0.1);
-			//deltaYgravity = Math.min(1, deltaYgravity + deltaTime);	
 		}
-
-		//lights[0].transform.Translate(-0.05, 0, 0.0);
 
 		//Smoother movement on camera
 		deltaXgravity *=0.90;
@@ -254,17 +251,19 @@ var RunProgram = function(vertexShaderText, fragmentShaderText)
 		
 		//Bind texture atlas
 		gl.activeTexture(gl.TEXTURE0);
-		gl.bindTexture(gl.TEXTURE_2D, textures[0]);
+		gl.bindTexture(gl.TEXTURE_2D, textures[0]); //Diffuse
 		gl.activeTexture(gl.TEXTURE1);
-		gl.bindTexture(gl.TEXTURE_2D, textures[1]);
+		gl.bindTexture(gl.TEXTURE_2D, textures[1]); //Specular
 		gl.activeTexture(gl.TEXTURE2);
-		gl.bindTexture(gl.TEXTURE_2D, textures[2]);
+		gl.bindTexture(gl.TEXTURE_2D, textures[2]); //Normal - used to create sparkles in specular
 
+		//Rendering the gameobjects
 		for(i = 0; i < gameObjects.length; i++)
 		{
 			RenderObject(gameObjects[i]);
 		}
 
+		//Enable blending for particles
 		gl.enable(gl.BLEND);
 
 		for(i = 0; i < particles.length; i++)
