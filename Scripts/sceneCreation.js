@@ -3,10 +3,11 @@ function CreateScene()
 	/*		SCENE CREATION START 	*/
 	var size = 5;
 	var flatLimit = 2;
+	var randomRot = 0;
 	for(z = -size; z <= size; z++)
 	{
 		for(x = -size; x <= size; x++)
-		{
+		{	
 			var y = 0;
 			//The flat ground around the tree
 			if((Math.abs(z) == flatLimit && Math.abs(x) <= flatLimit) || (Math.abs(x) == flatLimit && Math.abs(z) <= flatLimit))
@@ -38,8 +39,6 @@ function CreateScene()
 			}
 		}
 	}
-
-	
 
 	//Tree Construction
 	//Trunk

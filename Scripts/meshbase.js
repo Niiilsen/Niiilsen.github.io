@@ -30,9 +30,9 @@ MeshBase.prototype.Init = function (typeOfBlock)
 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(CreateBoxNormals()), gl.STATIC_DRAW); //What the bufferobject contains
 
 	// //Create vertex buffer object and bind it
-	// this.tangentBufferObject = gl.createBuffer();
-	// gl.bindBuffer(gl.ARRAY_BUFFER, this.tangentBufferObject);
-	// gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(CreateBoxTangents()), gl.STATIC_DRAW); //What the bufferobject contains
+	this.tangentBufferObject = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, this.tangentBufferObject);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(CreateBoxTangents()), gl.STATIC_DRAW); //What the bufferobject contains
 
 
 	// Create TextureCoord buffer object and bind it
@@ -71,15 +71,15 @@ MeshBase.prototype.Render = function(positionAttributeLocation, normalAttributeL
 		0  // Offset from the beginning of a single vertex to this attribute
 		);
 
-	// gl.bindBuffer(gl.ARRAY_BUFFER, this.tangentBufferObject);
-	// gl.vertexAttribPointer(
-	// 	tangentAttributeLocation, //Attribute location
-	// 	3, //Number of elements per attribute
-	// 	gl.FLOAT, //type of elements
-	// 	gl.TRUE, //Normalized
-	// 	3 * Float32Array.BYTES_PER_ELEMENT, // Size of an individual vertex
-	// 	0  // Offset from the beginning of a single vertex to this attribute
-	// 	);
+	 gl.bindBuffer(gl.ARRAY_BUFFER, this.tangentBufferObject);
+		gl.vertexAttribPointer(
+	 	tangentAttributeLocation, //Attribute location
+	 	3, //Number of elements per attribute
+	 	gl.FLOAT, //type of elements
+	 	gl.TRUE, //Normalized
+	 	3 * Float32Array.BYTES_PER_ELEMENT, // Size of an individual vertex
+	 	0  // Offset from the beginning of a single vertex to this attribute
+	 	);
 
 	gl.bindBuffer(gl.ARRAY_BUFFER, this.texCoordBufferObject);
 	gl.vertexAttribPointer(

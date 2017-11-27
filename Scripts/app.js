@@ -86,7 +86,7 @@ var RunProgram = function(vertexShaderText, fragmentShaderText)
 
 	gl.enableVertexAttribArray(positionAttributeLocation);
 	gl.enableVertexAttribArray(normalAttributeLocation);
-	//gl.enableVertexAttribArray(tangentAttributeLocation);
+	gl.enableVertexAttribArray(tangentAttributeLocation);
 	gl.enableVertexAttribArray(texCoordAttributeLocation);
 
 	//Object uniforms
@@ -125,6 +125,7 @@ var RunProgram = function(vertexShaderText, fragmentShaderText)
 	images = [];
 	images.push(document.getElementById('cubeAtlas'));
 	images.push(document.getElementById('cubeAtlasSpecular'));
+	images.push(document.getElementById('cubeAtlasNormal'));
 
 	var textures = [];
 	for(var i = 0; i < images.length; i++)
@@ -148,7 +149,7 @@ var RunProgram = function(vertexShaderText, fragmentShaderText)
 
 	gl.uniform1i(mainTexLocation, 0);
 	gl.uniform1i(specTexLocation, 1);
-	console.log("MainTex: " + mainTexLocation + " SpecTex: " + specTexLocation)
+	gl.uniform1i(normalMapLocation, 2);
 
 	gl.bindTexture(gl.TEXTURE_2D, null);
 	/* 		TEXTURE CREATION END 	 */
@@ -165,7 +166,7 @@ var RunProgram = function(vertexShaderText, fragmentShaderText)
 	lights.push(light);
 
 	var light02 = new Light()
-	light02.transform.SetPosition(-10, 8, -10);
+	light02.transform.SetPosition(-8, 8, -8);
 	light02.SetColor(0.9, 0.1, 1);
 	light02.intensity = 0.5;
 	lights.push(light02);
@@ -228,6 +229,7 @@ var RunProgram = function(vertexShaderText, fragmentShaderText)
 			//deltaYgravity = Math.min(1, deltaYgravity + deltaTime);	
 		}
 
+		//lights[0].transform.Translate(-0.05, 0, 0.0);
 
 		//Smoother movement on camera
 		deltaXgravity *=0.90;
@@ -255,6 +257,8 @@ var RunProgram = function(vertexShaderText, fragmentShaderText)
 		gl.bindTexture(gl.TEXTURE_2D, textures[0]);
 		gl.activeTexture(gl.TEXTURE1);
 		gl.bindTexture(gl.TEXTURE_2D, textures[1]);
+		gl.activeTexture(gl.TEXTURE2);
+		gl.bindTexture(gl.TEXTURE_2D, textures[2]);
 
 		for(i = 0; i < gameObjects.length; i++)
 		{

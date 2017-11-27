@@ -25,7 +25,8 @@ void main()
 
 	vec3 wBiTang = normalize(cross(wNorm, wTang));
 
-	TBN = mat3(
+	TBN = mat3
+	(
 		wTang.x, wBiTang.x, wNorm.x,
 		wTang.y, wBiTang.y, wNorm.y,
 		wTang.z, wBiTang.z, wNorm.z
