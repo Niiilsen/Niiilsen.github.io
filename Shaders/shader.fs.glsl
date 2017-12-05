@@ -44,8 +44,8 @@ precision mediump float;
 		{
 
 			//Distances and directions for light calculation
-			float vertDistFromLight = length(light[i].position - fragPos.xyz);
 			vec3 vertexToLightDir = light[i].position - fragPos.xyz;
+			float vertDistFromLight = length(vertexToLightDir);
 
 			//Get normal from normalMap and transform it into tangent space
 			vec3 normal = normalize(texture2D(normalMap, fragTexCoord).xyz) * 2.0 - 1.0;
@@ -56,11 +56,11 @@ precision mediump float;
 
 			//Light fade off multiplier
 			float lightMultiplier = clamp(1.0 - (vertDistFromLight/light[i].range), 0.0, 1.0);
+			//float lightMultiplier = (light[i].range)/pow(vertDistFromLight, 2.0);
 
 			//Sparkle specular
 			vec3 halfVector = normalize(normalize(vertexToLightDir) + eyeDir);
-			vec3 reflectVec = normalize(-reflect(vertexToLightDir, normal));
-			float specular = pow(max(dot(reflectVec, eyeDir), 0.0), shinyness);
+			float specular = pow(max(dot(halfVector, fragNormal), 0.0), shinyness);
 			float specularTexel = texture2D(specularTex, fragTexCoord).x * 5.0;
 			specular *= specularTexel;
 
